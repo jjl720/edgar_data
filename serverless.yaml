@@ -1,0 +1,41 @@
+service: secApiExtractor
+provider:
+  name: aws
+  stage: dev
+  region: us-west-2
+  runtime: python3.9
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+      - s3:*
+      - s3-object-lambda:*
+      Resource: '*'
+  ecr:
+    scanOnPush: true
+    images:
+      secApiExtractor:
+        path: .
+        platform: linux/amd64
+  deploymentBucket:
+    name: clai-serverless-deployments
+    blockPublicAccess: true
+
+functions:
+  queue_batch_requests:
+    memorySize: 7000
+    timeout: 850
+    image:
+      name: secApiExtractor
+      entryPoint:
+        - /lambda-entrypoint.sh
+      command:
+        - main.lambda_sec_extractor_queue_batch_requests
+  batch_requests:
+      memorySize: 7000
+      timeout: 850
+      image:
+        name: secApiExtractor
+        entryPoint:
+          - /lambda-entrypoint.sh
+        command:
+          - main.lambda_sec_extractor_batch_requests
